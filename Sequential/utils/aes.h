@@ -181,5 +181,5 @@ static const unsigned char mul[256][6] ={
 
 void build_subkeys(unsigned char* key,unsigned char* sub_keys, int rowsize,int rounds);
 
-void aes128_encript(char* to_enc, char* key,unsigned char* sub_keys, char* encripted);
-void aes128_decript(char* to_dec, char* key,unsigned char* sub_keys,unsigned char* decripted);
+void aes128_encript(unsigned char* to_enc, unsigned char* key,unsigned char* sub_keys, char* encripted);
+void aes128_decript(unsigned char* to_dec, char* key,unsigned char* sub_keys,unsigned char* decripted);

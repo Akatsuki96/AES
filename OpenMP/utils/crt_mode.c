@@ -56,7 +56,8 @@ void ctr_enc(char* plain, char* key,unsigned char iv[16],unsigned char* sub_keys
   int num_blocks = (text_length / 16)+((text_length % 16)!=0);
   unsigned char counters[num_blocks][16];
   unsigned char blocks[num_blocks][16];
-
+  #pragma omp parallel
+  {
   if(sub_keys==NULL)
     build_subkeys(key,sub_keys,16,rounds+1);
 
@@ -72,6 +73,7 @@ void ctr_enc(char* plain, char* key,unsigned char iv[16],unsigned char* sub_keys
     xor_string(&block[0],&blocks[i][0],&encripted[i*16]);
   }
   encripted[16*num_blocks] = 0x0;
+  }
 }
 
 
@@ -80,6 +82,8 @@ void ctr_dec(char* encoded, char* key,unsigned char iv[16],unsigned char* sub_ke
   int num_blocks = (text_length / 16);
   unsigned char counters[num_blocks][16];
   unsigned char blocks[num_blocks][16];
+  #pragma omp parallel
+  {
   if(sub_keys==NULL)
     build_subkeys(key,sub_keys,16,rounds+1);
 
@@ -95,4 +99,5 @@ void ctr_dec(char* encoded, char* key,unsigned char iv[16],unsigned char* sub_ke
     xor_string(&block[0],&blocks[i][0],&decripted[i*16]);
   }
   decripted[16*num_blocks] = 0x0;
+  }
 }

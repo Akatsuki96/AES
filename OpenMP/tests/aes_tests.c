@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <assert.h>
 #include <unistd.h>
 #ifndef SIZE
 #define SIZE 20000
@@ -38,7 +39,7 @@ int main(int argc, char** argv){
   build_subkeys(key,&sub_keys[0][0],16,ROUNDS+1);
   printf("[--] Plain Text: %s\n",plain);
   ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0],AES128);
-  printf("[--] CTR ncripted: %s\n",encripted);
+  printf("[--] CTR encripted: %s\n",encripted);
   unsigned char iv2[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   ctr_dec(encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],AES128);
   printf("[--] CTR Decripted: %s\n",decripted);

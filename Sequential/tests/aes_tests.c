@@ -7,11 +7,16 @@
 #include <assert.h>
 
 #ifndef SIZE
-#define SIZE 20000
+#define SIZE 900000
 #endif
 #define ROUNDS 10
 #define CODELEN 16
 
+int bytencmp(unsigned char* str1, unsigned char* str2, size_t len){
+  for(int i = 0; i < len; i++)
+    if(str1[i] != str2[i]) return str1[i] - str2[i];
+  return 0;
+}
 
 int main(int argc, char** argv){
   if(argc < 2){
@@ -20,7 +25,7 @@ int main(int argc, char** argv){
   }
   unsigned char encripted[SIZE+1];
   unsigned char decripted[SIZE+1];
-  unsigned char sub_keys[ROUNDS][CODELEN];
+  unsigned char sub_keys[ROUNDS+1][CODELEN];
 
   unsigned char plain[SIZE+1];
   int fd = open(argv[1],O_RDWR);
@@ -38,11 +43,11 @@ int main(int argc, char** argv){
   unsigned char iv[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   build_subkeys(key,&sub_keys[0][0],16,ROUNDS+1);
   printf("[--] Plain Text: %s\n",plain);
-  ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0],AES128);
-  printf("[--] CTR ncripted: %s\n",encripted);
+  int size = ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0]);
+  printf("[--] CTR encripted: %s\n",encripted);
   unsigned char iv2[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
-  ctr_dec(encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],AES128);
+  ctr_dec(encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],size*16);
   printf("[--] CTR Decripted: %s\n",decripted);
-  assert(strcmp(plain,decripted)==0);
+  assert(bytencmp(plain,decripted,strlen(plain))==0);
   return 0;
 }

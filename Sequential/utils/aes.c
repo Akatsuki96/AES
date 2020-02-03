@@ -11,17 +11,10 @@ void print_matrix(unsigned char* mat, int rowsize){
   }
 }
 
-void build_matrix(char* str,unsigned char mat[][4],int rowsize){
-  size_t len = strlen(str);
-  int count = 0;
+void build_matrix(unsigned char* str,unsigned char mat[][4],int rowsize){
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++){
-      if(count == len){
-        mat[j][i] = 0x0;
-      }else{
-        mat[j][i] = str[count];
-        count++;
-      }
+      mat[j][i] = str[i*rowsize+j];
     }
 }
 
@@ -130,15 +123,14 @@ void xor_key(char* text, char* key, int rowsize){
 }
 
 
-void aes_encript(char* text, char* key,unsigned char* sub_keys, char* encripted,int rounds,int rowsize){
+void aes_encript(unsigned char* text, unsigned char* key,unsigned char* sub_keys, char* encripted,int rounds,int rowsize){
   int tot_size = rowsize * rowsize;
   unsigned char text_mat[rowsize][rowsize];
 //  unsigned char sub_keys[rounds+1][tot_size];
 
-  if(sub_keys==NULL)
-    build_subkeys(key,sub_keys,tot_size,rounds+1);
-
-  build_matrix(text,text_mat,rowsize);
+//  if(sub_keys==NULL) build_subkeys(key,sub_keys,tot_size,rounds+1);
+  build_matrix(&text[0],text_mat,rowsize);
+  //printf("FF: %x\n",text[0]);
   xor_key(&text_mat[0][0],sub_keys,rowsize);
   for(int r = 0; r < rounds-1; r++){
     sub_bytes(&text_mat[0][0],tot_size);
@@ -158,9 +150,7 @@ void aes_decript(char* text, char* key,unsigned char* sub_keys,unsigned char* de
   int tot_size = rowsize * rowsize;
   unsigned char text_mat[rowsize][rowsize];
   //unsigned char sub_keys[rounds+1][tot_size];
-  if(sub_keys==NULL)
-    build_subkeys(key,sub_keys,tot_size,rounds+1);
-
+  //if(sub_keys==NULL) build_subkeys(key,sub_keys,tot_size,rounds+1);
   build_matrix(text,text_mat,rowsize);
   xor_key(&text_mat[0][0],&sub_keys[rounds*(rounds+1)],rowsize);
   right_shift_rows(&text_mat[0][0],rowsize);
@@ -182,11 +172,11 @@ void aes_decript(char* text, char* key,unsigned char* sub_keys,unsigned char* de
 
 
 
-void aes128_encript(char* to_enc, char* key,unsigned char* sub_keys, char* encripted){
+void aes128_encript(unsigned char* to_enc, unsigned char* key,unsigned char* sub_keys, char* encripted){
   aes_encript(to_enc,key,sub_keys,encripted,10,4);
 }
 
 
-void aes128_decript(char* to_dec, char* key,unsigned char* sub_keys,unsigned char* decripted){
+void aes128_decript(unsigned char* to_dec, char* key,unsigned char* sub_keys,unsigned char* decripted){
   aes_decript(to_dec,key,sub_keys,decripted,10,4);
 }
