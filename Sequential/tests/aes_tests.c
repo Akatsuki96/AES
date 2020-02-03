@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #ifndef SIZE
-#define SIZE 900000
+#define SIZE 209999
 #endif
 #define ROUNDS 10
 #define CODELEN 16
@@ -23,11 +23,11 @@ int main(int argc, char** argv){
     printf("[xx] Usage: ./aes_test file\nFile must contain the string to encript and decript!\n");
     return 1;
   }
-  unsigned char encripted[SIZE+1];
-  unsigned char decripted[SIZE+1];
+  unsigned char encripted[SIZE];
+  unsigned char decripted[SIZE];
   unsigned char sub_keys[ROUNDS+1][CODELEN];
 
-  unsigned char plain[SIZE+1];
+  unsigned char plain[SIZE];
   int fd = open(argv[1],O_RDWR);
   if(fd < 0){
     printf("[xx] Error: couldn't open the file!\n");
@@ -43,7 +43,7 @@ int main(int argc, char** argv){
   unsigned char iv[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   build_subkeys(key,&sub_keys[0][0],16,ROUNDS+1);
   printf("[--] Plain Text: %s\n",plain);
-  int size = ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0]);
+  int size = ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0],strlen(plain));
   printf("[--] CTR encripted: %s\n",encripted);
   unsigned char iv2[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   ctr_dec(encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],size*16);

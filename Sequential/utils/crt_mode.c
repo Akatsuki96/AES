@@ -56,8 +56,7 @@ void print_blocks(unsigned char (*blocks)[16],int num_blocks){
   }
 }
 
-int ctr_enc(unsigned char* plain, unsigned char* key,unsigned char iv[16],unsigned char* sub_keys,int rounds,uint8_t* encripted){
-  int text_length = strlen(plain);
+int ctr_enc(unsigned char* plain, unsigned char* key,unsigned char iv[16],unsigned char* sub_keys,int rounds,uint8_t* encripted,int text_length){
   int num_blocks = (text_length / 16)+((text_length % 16)!=0);
   unsigned char counters[num_blocks][16];
   unsigned char blocks[num_blocks][16];

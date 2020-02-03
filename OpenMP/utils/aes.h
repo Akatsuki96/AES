@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <omp.h>
 
 static const unsigned char sbox[256] = {
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -181,5 +182,5 @@ static const unsigned char mul[256][6] ={
 
 void build_subkeys(unsigned char* key,unsigned char* sub_keys, int rowsize,int rounds);
 
-void aes128_encript(char* to_enc, char* key,unsigned char* sub_keys, char* encripted);
-void aes128_decript(char* to_dec, char* key,unsigned char* sub_keys,unsigned char* decripted);
+void aes128_encript(unsigned char* to_enc, unsigned char* key,unsigned char* sub_keys, char* encripted);
+void aes128_decript(unsigned char* to_dec, char* key,unsigned char* sub_keys,unsigned char* decripted);
