@@ -12,15 +12,26 @@
 
 
 int main(int argc, char** argv){
+
+  if(argc < 2){
+    printf("[xx] Usage: ./aes_test file\nFile must contain the string to encript and decript!\n");
+    return 1;
+  }
   unsigned char encripted[SIZE+1];
   unsigned char decripted[SIZE+1];
   unsigned char sub_keys[ROUNDS][CODELEN];
 
   unsigned char plain[SIZE+1];
   int fd = open(argv[1],O_RDWR);
-  if(fd < 0) exit(1);
+  if(fd < 0){
+    printf("[xx] Error: couldn't open the file!\n");
+   return 1;
+  }
   int read_bytes = read(fd,&plain[0],SIZE);
-  if(read_bytes<0) exit(1);
+  if(read_bytes<0){
+    printf("[xx] Error: couldn't read the file!\n");
+   return 1;
+  }
   close(fd);
   unsigned char* key = "K1ng_G30rg3_rul3";
   unsigned char iv[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
@@ -31,5 +42,6 @@ int main(int argc, char** argv){
   unsigned char iv2[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   ctr_dec(encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],AES128);
   printf("[--] CTR Decripted: %s\n",decripted);
+  assert(strcmp(plain,decripted)==0);
   return 0;
 }
