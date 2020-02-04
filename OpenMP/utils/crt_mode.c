@@ -24,6 +24,7 @@ void build_counters(unsigned char iv[16], int num_blocks,unsigned char (*counter
 }
 
 void build_blocks(unsigned char* plain, int num_blocks, unsigned char (*blocks)[16],int size){
+  #pragma omp for
   for(int i = 0; i < num_blocks; i++){
     for(int j = 0; j < 16 ; j++){
       blocks[i][j]=plain[i*16+j];
@@ -63,8 +64,9 @@ int ctr_enc(unsigned char* plain, unsigned char* key,unsigned char iv[16],unsign
   #pragma omp single
   {
   build_counters(&iv[0],num_blocks,&counters[0]);
-  build_blocks(plain,num_blocks,blocks,text_length);
   }
+  build_blocks(plain,num_blocks,blocks,text_length);
+
   //}
   #pragma omp for
   for(int i = 0; i < num_blocks; i++){
@@ -97,8 +99,9 @@ void ctr_dec(char* encoded, char* key,unsigned char iv[16],unsigned char* sub_ke
   #pragma omp single
   {
   build_counters(iv,num_blocks,&counters[0]);
-  build_blocks(encoded,num_blocks,&blocks[0],text_length);
   }
+  build_blocks(encoded,num_blocks,&blocks[0],text_length);
+
   #pragma omp for
   for(int i = 0; i < num_blocks; i++){
     aes128_encript(&counters[i][0],key,sub_keys,block);
