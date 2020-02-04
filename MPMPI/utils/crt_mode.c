@@ -66,40 +66,51 @@ int ctr_enc(int rank, int nprocs,unsigned char* plain, unsigned char* key,unsign
   unsigned char partial_blocks[thread_nblock][16];
   unsigned char recv_blocks[num_blocks][16];
 
+  #pragma omp parallel shared(blocks,counters)
+  {
 
   if(sub_keys==NULL) build_subkeys(key,sub_keys,16,rounds+1);
 
   if(rank == 0){
-
-    // master node init counters and blocks
+    #pragma omp single
+    {
+    printf("Num blocks: %d\n",num_blocks);
     build_counters(&iv[0],num_blocks,&counters[0]);
+    }
     build_blocks(plain,num_blocks,blocks,text_length);
 
   }
+  #pragma omp single
+  {
   MPI_Scatter(&counters[0][0],thread_nblock*16,MPI_CHAR,&process_counters[0][0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
-
-//  MPI_Scatter(&counters[0][0],thread_nblock*16,MPI_CHAR,&process_counters[0][0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
-  //}else{
-  for(int i = 0; i < thread_nblock; i++){
-//    uint8_t block[16];
-    aes128_encript(&process_counters[i][0],key,sub_keys,partial_blocks[i]);
-  //    xor_string(block,blocks[i],&encripted[i*16]);
-  //    encripted[i*16+16]=0x0;
   }
+  #pragma omp for
+  for(int i = 0; i < thread_nblock; i++){
+    aes128_encript(&process_counters[i][0],key,sub_keys,partial_blocks[i]);
+  }
+  #pragma omp barrier
   if(rank !=0){
+    #pragma omp master
+    {
     MPI_Gather(&partial_blocks[0],thread_nblock*16,MPI_CHAR,NULL,thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
+    }
   }else{
-  //}
+    #pragma omp single
+    {
     MPI_Gather(&partial_blocks[0],thread_nblock*16,MPI_CHAR,&recv_blocks[0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
+    }
     for(int i = 0; i < num_blocks; i++){
       xor_string(recv_blocks[i],blocks[i],&encripted[i*16]);
       encripted[i*16+16]=0x0;
     }
     encripted[(num_blocks)*16] = 0x0;
-    printf("[--] CTR encripted: %s\n",encripted);
+    #pragma omp master
+    {
+      printf("[--] Encripted: %s\n",encripted);
+    }
   }
 //  MPI_Finalize();
-
+  }
   return num_blocks;
 }
 
@@ -119,30 +130,46 @@ void ctr_dec(int rank, int nprocs,char* encoded, char* key,unsigned char iv[16],
   unsigned char process_counters[thread_nblock][16];
   unsigned char partial_blocks[thread_nblock][16];
   unsigned char recv_blocks[num_blocks][16];
-
-
+  #pragma omp parallel
+  {
   if(sub_keys==NULL) build_subkeys(key,sub_keys,16,rounds+1);
 
   if(rank == 0){
     // master node init counters and blocks
+    #pragma omp single
+    {
     build_counters(&iv[0],num_blocks,&counters[0]);
+    }
     build_blocks(encoded,num_blocks,blocks,text_length);
   }
+  #pragma omp master
+  {
   MPI_Scatter(&counters[0][0],thread_nblock*16,MPI_CHAR,&process_counters[0][0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
-
+  }
+  #pragma omp barrier
   for(int i = 0; i < thread_nblock; i++){
     aes128_encript(&process_counters[i][0],key,sub_keys,partial_blocks[i]);
   }
+  #pragma omp barrier
   if(rank!=0){
+    #pragma omp master
+    {
     MPI_Gather(&partial_blocks[0],thread_nblock*16,MPI_CHAR,NULL,thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
+    }
   }else{
+    #pragma omp single
+    {
     MPI_Gather(&partial_blocks[0],thread_nblock*16,MPI_CHAR,&recv_blocks[0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
-
+    }
     for(int i = 0; i < num_blocks; i++){
       xor_string(recv_blocks[i],blocks[i],&decripted[i*16]);
       decripted[i*16+16]=0x0;
     }
     decripted[(num_blocks)*16] = 0x0;
+    #pragma omp master
+    {
     printf("[--] CTR Decripted: %s\n",decripted);
+    }
+  }
   }
 }
