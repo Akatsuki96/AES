@@ -14,7 +14,7 @@ void print_matrix(unsigned char* mat, int rowsize){
 void build_matrix(unsigned char* str,unsigned char mat[][4],int rowsize){
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++){
-      mat[j][i] = str[i*rowsize+j];
+      mat[i][j] = str[i*rowsize+j];
     }
 }
 
@@ -30,8 +30,6 @@ void inv_sub_bytes(unsigned char* mat, int totsize){
 
 
 void left_shift_rows(unsigned char* mat, int rowsize, int totsize){
-  int to_shift = 0;
-  int act = rowsize;
   int k,tmp;
   for(int i = 1; i < rowsize; i++){
     for(int j = 0; j < i; j++){
@@ -119,18 +117,14 @@ void build_subkeys(unsigned char* key,unsigned char* sub_keys, int totsize,int r
 void xor_key(char* text, char* key, int rowsize){
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++)
-      text[j*rowsize+i] = text[j*rowsize+i] ^ key[i*rowsize+j];
+      text[i*rowsize+j] = text[i*rowsize+j] ^ key[i*rowsize+j];
 }
 
 
 void aes_encript(unsigned char* text, unsigned char* key,unsigned char* sub_keys, char* encripted,int rounds,int rowsize){
   int tot_size = rowsize * rowsize;
   unsigned char text_mat[rowsize][rowsize];
-//  unsigned char sub_keys[rounds+1][tot_size];
-
-//  if(sub_keys==NULL) build_subkeys(key,sub_keys,tot_size,rounds+1);
   build_matrix(&text[0],text_mat,rowsize);
-  //printf("FF: %x\n",text[0]);
   xor_key(&text_mat[0][0],sub_keys,rowsize);
   for(int r = 0; r < rounds-1; r++){
     sub_bytes(&text_mat[0][0],tot_size);
@@ -143,14 +137,13 @@ void aes_encript(unsigned char* text, unsigned char* key,unsigned char* sub_keys
   xor_key(&text_mat[0][0],&sub_keys[rounds*(rounds+1)],rowsize);
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++)
-      encripted[i*rowsize+j] = text_mat[j][i];
+      encripted[i*rowsize+j] = text_mat[i][j];
 }
 
-void aes_decript(char* text, char* key,unsigned char* sub_keys,unsigned char* decripted,int rounds,int rowsize){
+void aes_decript(char* text, char* key,unsigned char* sub_keys,
+    unsigned char* decripted,int rounds,int rowsize){
   int tot_size = rowsize * rowsize;
   unsigned char text_mat[rowsize][rowsize];
-  //unsigned char sub_keys[rounds+1][tot_size];
-  //if(sub_keys==NULL) build_subkeys(key,sub_keys,tot_size,rounds+1);
   build_matrix(text,text_mat,rowsize);
   xor_key(&text_mat[0][0],&sub_keys[rounds*(rounds+1)],rowsize);
   right_shift_rows(&text_mat[0][0],rowsize);
@@ -163,11 +156,9 @@ void aes_decript(char* text, char* key,unsigned char* sub_keys,unsigned char* de
     inv_sub_bytes(&text_mat[0][0],tot_size);
   }
   xor_key(&text_mat[0][0],sub_keys,rowsize);
-
-
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++)
-      decripted[i*rowsize+j] = text_mat[j][i];
+      decripted[i*rowsize+j] = text_mat[i][j];
 }
 
 

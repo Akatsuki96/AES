@@ -74,7 +74,7 @@ int ctr_enc(int rank, int nprocs,unsigned char* plain, unsigned char* key,unsign
   if(rank == 0){
     #pragma omp single
     {
-    printf("Num blocks: %d\n",num_blocks);
+  //  printf("Num blocks: %d\n",num_blocks);
     build_counters(&iv[0],num_blocks,&counters[0]);
     }
     build_blocks(plain,num_blocks,blocks,text_length);
@@ -104,10 +104,10 @@ int ctr_enc(int rank, int nprocs,unsigned char* plain, unsigned char* key,unsign
       encripted[i*16+16]=0x0;
     }
     encripted[(num_blocks)*16] = 0x0;
-    #pragma omp master
+  /*  #pragma omp master
     {
       printf("[--] Encripted: %s\n",encripted);
-    }
+    }*/
   }
 //  MPI_Finalize();
   }
@@ -166,10 +166,10 @@ void ctr_dec(int rank, int nprocs,char* encoded, char* key,unsigned char iv[16],
       decripted[i*16+16]=0x0;
     }
     decripted[(num_blocks)*16] = 0x0;
-    #pragma omp master
+  /*  #pragma omp master
     {
     printf("[--] CTR Decripted: %s\n",decripted);
-    }
+  }*/
   }
   }
 }

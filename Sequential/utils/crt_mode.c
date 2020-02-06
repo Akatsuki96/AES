@@ -69,32 +69,12 @@ int ctr_enc(unsigned char* plain, unsigned char* key,unsigned char iv[16],unsign
 
   build_counters(&iv[0],num_blocks,&counters[0]);
   build_blocks(plain,num_blocks,blocks,text_length);
-  #ifdef DEBUG
-  print_counters(&counters[0],num_blocks);
-  print_blocks(&blocks[0],num_blocks);
-  #endif
   for(int i = 0; i < num_blocks; i++){
     uint8_t block[16];
     aes128_encript(&counters[i][0],key,sub_keys,block);
-  /*  printf("[--] Block %d: ",i);
-    for(int j = 0; j < 16; j++)
-      printf("%02x",block[j]);
-    printf("\nXoring with: ");
-    for(int k = 0; k < 16; k++)
-      printf("%02x",blocks[i][k]);
-    printf("\n");*/
     xor_string(block,blocks[i],&encripted[i*16]);
     encripted[i*16+16]=0x0;
-  /*  printf("[--] Result: ");
-    for(int k = 0; k < 16; k++)
-      printf("%02x ",encripted[i*16+k]);
-    printf("\n");*/
   }
-/*  printf("[--] Final result: ");
-  for(int i = 0; i < num_blocks; i++)
-    for(int j = 0; j < 16; j++)
-      printf("%02x ",encripted[i*16+j]);
-  printf("\n");*/
   encripted[(num_blocks)*16] = 0x0;
   return num_blocks;
 }
@@ -111,7 +91,6 @@ void ctr_dec(char* encoded, char* key,unsigned char iv[16],unsigned char* sub_ke
   for(int i = 0; i < text_length; i++)
     decripted[i] = 0;
 
-  printf("Text length: %d\n",text_length);
   int num_blocks = (text_length / 16);
   unsigned char counters[num_blocks][16];
   unsigned char blocks[num_blocks][16];
@@ -119,14 +98,8 @@ void ctr_dec(char* encoded, char* key,unsigned char iv[16],unsigned char* sub_ke
 
   build_counters(iv,num_blocks,&counters[0]);
   build_blocks(encoded,num_blocks,&blocks[0],text_length);
-  #ifdef DEBUG
-  print_counters(&counters[0],num_blocks);
-  print_blocks(&blocks[0],num_blocks);
-  #endif
   for(int i = 0; i < num_blocks; i++){
     uint8_t block[16];
-  //  printf("Decripting block %d\n",i);
-
     aes128_encript(&counters[i][0],key,sub_keys,block);
     xor_string(&block[0],&blocks[i][0],&decripted[i*16]);
   }

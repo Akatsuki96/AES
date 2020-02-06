@@ -12,29 +12,24 @@ void print_matrix(unsigned char* mat, int rowsize){
 }
 
 void build_matrix(unsigned char* str,unsigned char mat[][4],int rowsize){
-  //#pragma omp for
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++){
-      mat[j][i] = str[i*rowsize+j];
+      mat[i][j] = str[i*rowsize+j];
     }
 }
 
 void sub_bytes(unsigned char* mat, int totsize){
-//  #pragma omp for
   for(int i = 0; i < totsize; i++)
     mat[i] = get_sbox_value(mat[i]);
 }
 
 void inv_sub_bytes(unsigned char* mat, int totsize){
-//  #pragma omp for
   for(int i = 0; i < totsize; i++)
     mat[i] = get_rsbox_value(mat[i]);
 }
 
 
 void left_shift_rows(unsigned char* mat, int rowsize, int totsize){
-  int to_shift = 0;
-  int act = rowsize;
   int k,tmp;
   for(int i = 1; i < rowsize; i++){
     for(int j = 0; j < i; j++){
@@ -50,7 +45,6 @@ void right_shift_rows(unsigned char* mat, int rowsize){
   int to_shift = 0;
   int act = rowsize;
   int k,tmp;
-//  #pragma omp for
   for(int i = 1; i < rowsize; i++){
     for(int j = 0; j < i; j++){
       tmp = mat[i*rowsize+rowsize-1];
@@ -65,7 +59,6 @@ void mix_column128(unsigned char* text_mat, int totsize){
   unsigned char b0, b1, b2, b3;
   unsigned char result[totsize];
   int i;
-  //#pragma omp for
 	for (i = 0; i < 4; i ++){
 		b0 = text_mat[i];
 		b1 = text_mat[i + 4];
@@ -76,7 +69,6 @@ void mix_column128(unsigned char* text_mat, int totsize){
 		result[i + 8] = b0 ^ b1 ^ mul[b2][0] ^ (mul[b3][0]^b3);
 		result[i + 12] = (mul[b0][0]^b0) ^ b1 ^ b2 ^ mul[b3][0];
 	}
-  //#pragma omp for
   for(i = 0; i < totsize; i++)
     text_mat[i]=result[i];
 }
@@ -85,9 +77,7 @@ void inv_mix_column128(unsigned char* text_mat){
   unsigned char b0, b1, b2, b3;
   unsigned char result[16];
   int i;
-  //#pragma omp for
 	for (i = 0; i < 4; i ++){
-
 		b0 = text_mat[i];
 		b1 = text_mat[i + 4];
 		b2 = text_mat[i + 8];
@@ -97,14 +87,12 @@ void inv_mix_column128(unsigned char* text_mat){
 		result[i + 8] = mul[b0][4] ^ mul[b1][2] ^ mul[b2][5] ^ mul[b3][3];
 		result[i + 12] = mul[b0][3] ^ mul[b1][4] ^ mul[b2][2] ^ mul[b3][5];
 	}
-//  #pragma omp for
   for(i = 0; i < 16; i++)
     text_mat[i]=result[i];
 }
 
 
 void build_subkeys(unsigned char* key,unsigned char* sub_keys, int totsize,int rounds){
-//  #pragma omp for
   for(int i = 0; i < rounds; i++){
     if(i == 0){
       for(int j = 0; j < totsize; j++){
@@ -128,10 +116,8 @@ void build_subkeys(unsigned char* key,unsigned char* sub_keys, int totsize,int r
 
 void xor_key(char* text, char* key, int rowsize){
   for(int i = 0; i < rowsize; i++)
-    for(int j = 0; j < rowsize; j++){
-  //    #pragma omp atomic
-      text[j*rowsize+i] = text[j*rowsize+i] ^ key[i*rowsize+j];
-    }
+    for(int j = 0; j < rowsize; j++)
+      text[i*rowsize+j] = text[i*rowsize+j] ^ key[i*rowsize+j];
 }
 
 
@@ -151,20 +137,18 @@ void aes_encript(unsigned char* text, unsigned char* key,unsigned char* sub_keys
   xor_key(&text_mat[0][0],&sub_keys[rounds*(rounds+1)],rowsize);
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++)
-      encripted[i*rowsize+j] = text_mat[j][i];
+      encripted[i*rowsize+j] = text_mat[i][j];
 }
 
-void aes_decript(char* text, char* key,unsigned char* sub_keys,unsigned char* decripted,int rounds,int rowsize){
+void aes_decript(char* text, char* key,unsigned char* sub_keys,
+    unsigned char* decripted,int rounds,int rowsize){
   int tot_size = rowsize * rowsize;
   unsigned char text_mat[rowsize][rowsize];
-  //unsigned char sub_keys[rounds+1][tot_size];
-  //if(sub_keys==NULL) build_subkeys(key,sub_keys,tot_size,rounds+1);
   build_matrix(text,text_mat,rowsize);
   xor_key(&text_mat[0][0],&sub_keys[rounds*(rounds+1)],rowsize);
   right_shift_rows(&text_mat[0][0],rowsize);
   inv_sub_bytes(&text_mat[0][0],tot_size);
 
-//  #pragma omp parallel for
   for(int r = rounds-1; r > 0; --r){
     xor_key(&text_mat[0][0],&sub_keys[r*(rounds+1)],rowsize);
     inv_mix_column128(&text_mat[0][0]);
@@ -172,10 +156,9 @@ void aes_decript(char* text, char* key,unsigned char* sub_keys,unsigned char* de
     inv_sub_bytes(&text_mat[0][0],tot_size);
   }
   xor_key(&text_mat[0][0],sub_keys,rowsize);
-
   for(int i = 0; i < rowsize; i++)
     for(int j = 0; j < rowsize; j++)
-      decripted[i*rowsize+j] = text_mat[j][i];
+      decripted[i*rowsize+j] = text_mat[i][j];
 }
 
 

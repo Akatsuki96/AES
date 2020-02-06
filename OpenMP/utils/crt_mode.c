@@ -24,7 +24,7 @@ void build_counters(unsigned char iv[16], int num_blocks,unsigned char (*counter
 }
 
 void build_blocks(unsigned char* plain, int num_blocks, unsigned char (*blocks)[16],int size){
-  #pragma omp for
+  #pragma omp for schedule(static)
   for(int i = 0; i < num_blocks; i++){
     for(int j = 0; j < 16 ; j++){
       blocks[i][j]=plain[i*16+j];
@@ -51,32 +51,29 @@ void print_blocks(unsigned char (*blocks)[16],int num_blocks){
   }
 }
 
-int ctr_enc(unsigned char* plain, unsigned char* key,unsigned char iv[16],unsigned char* sub_keys,int rounds,uint8_t* encripted,int text_length){
+int ctr_enc(unsigned char* plain, unsigned char* key,unsigned char iv[16],
+  unsigned char* sub_keys,int rounds,uint8_t* encripted,int text_length){
   int num_blocks = (text_length / 16)+((text_length % 16)!=0);
   unsigned char counters[num_blocks][16];
   unsigned char blocks[num_blocks][16];
   uint8_t block[16];
-  #pragma omp parallel private(block) shared(blocks,counters)
-  {
-
   if(sub_keys==NULL)
     build_subkeys(key,sub_keys,16,rounds+1);
+  #pragma omp parallel private(block) shared(blocks,counters)
+  {
   #pragma omp single
   {
   build_counters(&iv[0],num_blocks,&counters[0]);
   }
   build_blocks(plain,num_blocks,blocks,text_length);
-
-  //}
-  #pragma omp for
+  #pragma omp for schedule(guided)
   for(int i = 0; i < num_blocks; i++){
     aes128_encript(&counters[i][0],key,sub_keys,block);
     xor_string(block,blocks[i],&encripted[i*16]);
   }
  }
  encripted[(num_blocks)*16] = 0x0;
-
-  return num_blocks;
+ return num_blocks;
 }
 
 int encoded_len(char* encoded){
@@ -102,7 +99,7 @@ void ctr_dec(char* encoded, char* key,unsigned char iv[16],unsigned char* sub_ke
   }
   build_blocks(encoded,num_blocks,&blocks[0],text_length);
 
-  #pragma omp for
+  #pragma omp for schedule(guided)
   for(int i = 0; i < num_blocks; i++){
     aes128_encript(&counters[i][0],key,sub_keys,block);
     xor_string(&block[0],&blocks[i][0],&decripted[i*16]);

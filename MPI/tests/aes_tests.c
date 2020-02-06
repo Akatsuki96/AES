@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #ifndef SIZE
-#define SIZE 909999
+#define SIZE 3009999
 #endif
 #define ROUNDS 10
 #define CODELEN 16
@@ -48,14 +48,14 @@ int main(int argc, char** argv){
   unsigned char iv[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   build_subkeys(key,&sub_keys[0][0],16,ROUNDS+1);
   //if(rank==0){
-  if(rank == 0)
-    printf("[--] Plain Text: %s\n",plain);
+  /*if(rank == 0)
+    printf("[--] Plain Text: %s\n",plain);*/
 
   int size = ctr_enc(rank,nprocs,plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0],strlen(plain));
   unsigned char iv2[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
   ctr_dec(rank,nprocs,encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],size*16);
-  if(rank == 0)
-    assert(bytencmp(plain,decripted,strlen(plain))==0);
+  /*if(rank == 0)
+    assert(bytencmp(plain,decripted,strlen(plain))==0);*/
   //}
   MPI_Finalize();
   return 0;

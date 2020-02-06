@@ -96,7 +96,7 @@ int ctr_enc(int rank, int nprocs,unsigned char* plain, unsigned char* key,unsign
       encripted[i*16+16]=0x0;
     }
     encripted[(num_blocks)*16] = 0x0;
-    printf("[--] CTR encripted: %s\n",encripted);
+  //  printf("[--] CTR encripted: %s\n",encripted);
   }
 //  MPI_Finalize();
 
@@ -143,6 +143,6 @@ void ctr_dec(int rank, int nprocs,char* encoded, char* key,unsigned char iv[16],
       decripted[i*16+16]=0x0;
     }
     decripted[(num_blocks)*16] = 0x0;
-    printf("[--] CTR Decripted: %s\n",decripted);
+  //  printf("[--] CTR Decripted: %s\n",decripted);
   }
 }

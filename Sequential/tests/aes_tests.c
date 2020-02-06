@@ -7,7 +7,7 @@
 #include <assert.h>
 
 #ifndef SIZE
-#define SIZE 209999
+#define SIZE 3009999
 #endif
 #define ROUNDS 10
 #define CODELEN 16
@@ -41,13 +41,19 @@ int main(int argc, char** argv){
   close(fd);
   unsigned char* key = "K1ng_G30rg3_rul3";
   unsigned char iv[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
-  build_subkeys(key,&sub_keys[0][0],16,ROUNDS+1);
-  printf("[--] Plain Text: %s\n",plain);
-  int size = ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0],strlen(plain));
-  printf("[--] CTR encripted: %s\n",encripted);
   unsigned char iv2[16]={0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0};
+  build_subkeys(key,&sub_keys[0][0],16,ROUNDS+1);
+  #ifdef DEBUG
+  printf("[--] Plain Text: %s\n",plain);
+  #endif
+  int size = ctr_enc(plain,key,&iv[0],&sub_keys[0][0],10,&encripted[0],strlen(plain));
+  #ifdef DEBUG
+  printf("[--] CTR encripted: %s\n",encripted);
+  #endif
   ctr_dec(encripted,key,&iv2[0],&sub_keys[0][0],10,&decripted[0],size*16);
+  #ifdef DEBUG
   printf("[--] CTR Decripted: %s\n",decripted);
   assert(bytencmp(plain,decripted,strlen(plain))==0);
+  #endif
   return 0;
 }
