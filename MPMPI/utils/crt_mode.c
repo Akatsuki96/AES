@@ -84,7 +84,7 @@ int ctr_enc(int rank, int nprocs,unsigned char* plain, unsigned char* key,unsign
   {
   MPI_Scatter(&counters[0][0],thread_nblock*16,MPI_CHAR,&process_counters[0][0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
   }
-  #pragma omp for
+  #pragma omp for schedule(guided)
   for(int i = 0; i < thread_nblock; i++){
     aes128_encript(&process_counters[i][0],key,sub_keys,partial_blocks[i]);
   }
@@ -142,11 +142,11 @@ void ctr_dec(int rank, int nprocs,char* encoded, char* key,unsigned char iv[16],
     }
     build_blocks(encoded,num_blocks,blocks,text_length);
   }
-  #pragma omp master
+  #pragma omp single
   {
   MPI_Scatter(&counters[0][0],thread_nblock*16,MPI_CHAR,&process_counters[0][0],thread_nblock*16,MPI_CHAR,0,MPI_COMM_WORLD);
   }
-  #pragma omp barrier
+  #pragma omp for schedule(guided)
   for(int i = 0; i < thread_nblock; i++){
     aes128_encript(&process_counters[i][0],key,sub_keys,partial_blocks[i]);
   }
