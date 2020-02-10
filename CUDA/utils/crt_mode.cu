@@ -88,11 +88,11 @@ int ctr_exec(unsigned char* plain, unsigned char* result, unsigned char* sub_key
 
 	//execute aes
 	int blck = ceil(num_blocks/tpb)==0?1:ceil(num_blocks/tpb);
-  aes_encript<<<num_blocks , tpb>>>(dev_plain, dev_result, dev_sbox, dev_keys, text_length);
+  aes_encript<<<blck , tpb>>>(dev_plain, dev_result, dev_sbox, dev_keys, text_length);
 
 	//map result to main memory
 	cudaMemcpy(result, dev_result, text_length * sizeof(unsigned char), cudaMemcpyDeviceToHost);
-	result[text_length]=0x0;
+	//result[text_length]=0x0;
 //	printf("[--] RES: %s\n",result);
 	//free cuda
 	cudaFree(dev_result);
